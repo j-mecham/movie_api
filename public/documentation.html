@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css">
         <title>Documentation</title>
     </head>
   <body>
@@ -11,5 +12,88 @@
     <p>The Film Fanatic API provides a place for users to receive information <br>
     on movies  (directors, actors, genres, etc.) as well as the ability to create <br>
     a profile to save data about all their favorites.</p>
+    <h3>URL endpoints and request methods</h3>
+    <table id="documented">
+      <tr>
+        <th>Functionality</th>
+        <th>Endpoint URL</th>
+        <th>Request Method</th>
+        <th>Query Parameters</th>
+        <th>Request Body</th>
+        <th>Response Data</th>
+      </tr>
+      <tr>
+        <td>Creates a new user</td>
+        <td>/users</td>
+        <td>POST</td>
+        <td>None</td>
+        <td>JSON object of new user</td>
+        <td>JSON object of new user with ID</td>
+      </tr>
+      <tr>
+        <td>Creates a new entry in the users Favorite Movies list</td>
+        <td>/users/:id/:movieTitle</td>
+        <td>POST</td>
+        <td>:id, :movieTitle</td>
+        <td>None</td>
+        <td>Text saying the movie has been added to the list</td>
+      </tr>
+      <tr>
+        <td>Returns a list of all movies</td>
+        <td>/movies</td>
+        <td>GET</td>
+        <td>None</td>
+        <td>None</td>
+        <td>List of JSON movie objects</td>
+      </tr>
+      <tr>
+        <td>Returns data about a movie by title</td>
+        <td>/movies/:movieTitle</td>
+        <td>GET</td>
+        <td>:title</td>
+        <td>None</td>
+        <td>JSON object of the movie</td>
+      </tr>
+      <tr>
+        <td>Returns data about a director by name</td>
+        <td>/movies/director/:directorName</td>
+        <td>GET</td>
+        <td>:directorName</td>
+        <td>None</td>
+        <td>JSON object of the director</td>
+      </tr>
+      <tr>
+        <td>Returns data about a genre by name</td>
+        <td>/movies/genre/:genreName</td>
+        <td>GET</td>
+        <td>:genreName</td>
+        <td>None</td>
+        <td>JSON object of the genre</td>
+      </tr>
+      <tr>
+        <td>Updates the username of the user</td>
+        <td>/users/:id</td>
+        <td>PUT</td>
+        <td>:id</td>
+        <td>JSON object with new name as "name" key</td>
+        <td>JSON object the user</td>
+      </tr>
+      <tr>
+        <td>Deletes a user by id</td>
+        <td>/users/:id</td>
+        <td>DELETE</td>
+        <td>:id</td>
+        <td>None</td>
+        <td>Text saying the user has been deleted</td>
+      </tr>
+      <tr>
+        <td>Deletes a movie from the user's favorite movie list by name</td>
+        <td>/users/:id/:movieTitle</td>
+        <td>DELETE</td>
+        <td>:id, :movieTitle</td>
+        <td>None</td>
+        <td>Text saying the move has been removed</td>
+      </tr>
+    </table>
   </body>
 </html>
