@@ -27,16 +27,38 @@
         <td>/users</td>
         <td>POST</td>
         <td>None</td>
-        <td>JSON object of new user</td>
-        <td>JSON object of new user with ID</td>
+        <td>JSON object of new user <br><br> Example: <br> 
+          &emsp;{<br>  
+          &emsp;&emsp;"Username": String,<br>  
+          &emsp;&emsp;"Password": String,<br>  
+          &emsp;&emsp;"Email": String,<br>  
+          &emsp;&emsp;"Birthday": Date<br>  
+          &emsp;}
+        </td>
+        <td>JSON object of new user with ID <br><br> Example: <br> &emsp;{<br>
+          &emsp;&emsp;"Username": String,<br>
+          &emsp;&emsp;"Password": String,<br>
+          &emsp;&emsp;"Email": String,<br>
+          &emsp;&emsp;"FavoriteMovies": Array,<br>
+          &emsp;&emsp;"_id": String,<br>
+          &emsp;&emsp;"__v": Number<br>
+          &emsp;}</td>
+      </tr>
+      <tr>
+        <td>Returns a user by username</td>
+        <td>/users/:Username</td>
+        <td>GET</td>
+        <td>:Username</td>
+        <td>None</td>
+        <td>A JSON object of the specified user <br>(See above for example)</td>
       </tr>
       <tr>
         <td>Creates a new entry in the users Favorite Movies list</td>
-        <td>/users/:id/:movieTitle</td>
+        <td>/users/:Username/movies/:MovieID</td>
         <td>POST</td>
-        <td>:id, :movieTitle</td>
+        <td>:Username, :MovieID</td>
         <td>None</td>
-        <td>Text saying the movie has been added to the list</td>
+        <td>A JSON object of the user with movieID in FavoriteMovies Array <br>(See above for example)</td>
       </tr>
       <tr>
         <td>Returns a list of all movies</td>
@@ -44,55 +66,114 @@
         <td>GET</td>
         <td>None</td>
         <td>None</td>
-        <td>List of JSON movie objects</td>
+        <td>Array of JSON movie objects <br><br> Example: <br>
+          &emsp;[<br>
+          &emsp;&emsp;{<br>
+          &emsp;&emsp;&emsp;"Genre": {<br>
+          &emsp;&emsp;&emsp;&emsp;"Name": String,<br>
+          &emsp;&emsp;&emsp;&emsp;"Description": String<br>
+          &emsp;&emsp;&emsp;},<br>
+          &emsp;&emsp;&emsp;"Director": {<br>
+          &emsp;&emsp;&emsp;&emsp;"Name": String,<br>
+          &emsp;&emsp;&emsp;&emsp;"Bio": String,<br>
+          &emsp;&emsp;&emsp;&emsp;"Birth": String,<br>
+          &emsp;&emsp;&emsp;&emsp;"Death": ""<br>
+          &emsp;&emsp;&emsp;},<br>
+          &emsp;&emsp;&emsp;"_id": String,<br>
+          &emsp;&emsp;&emsp;"Title": String,<br>
+          &emsp;&emsp;&emsp;"Description": String,<br>
+          &emsp;&emsp;&emsp;"Release_Year": String,<br>
+          &emsp;&emsp;&emsp;"ImagePath": String,<br>
+          &emsp;&emsp;&emsp;"Actors": Array of Strings,<br>
+          &emsp;&emsp;&emsp;"Featured": Boolean<br>
+          &emsp;&emsp;},<br>
+          &emsp;&emsp;{<br>
+          &emsp;&emsp;&emsp;etc.<br>
+          &emsp;&emsp;}<br>
+          &emsp;] </td>
       </tr>
       <tr>
         <td>Returns data about a movie by title</td>
-        <td>/movies/:movieTitle</td>
+        <td>/movies/:Title</td>
         <td>GET</td>
-        <td>:title</td>
+        <td>:Title</td>
         <td>None</td>
-        <td>JSON object of the movie</td>
+        <td>JSON object of the movie<br>(See above for example)</td>
+      </tr>
+      <tr>
+        <td>Returns all movies with a specified actor in them</td>
+        <td>/movies/actors/:Name</td>
+        <td>GET</td>
+        <td>:Name</td>
+        <td>None</td>
+        <td>Array of JSON movie objects containing specified actor <br>(See above for example)</td>
       </tr>
       <tr>
         <td>Returns data about a director by name</td>
-        <td>/movies/director/:directorName</td>
+        <td>/movies/director/:Name</td>
         <td>GET</td>
-        <td>:directorName</td>
+        <td>:Name</td>
         <td>None</td>
-        <td>JSON object of the director</td>
+        <td>JSON object of the director<br><br> Example: <br>
+            &emsp;{<br>
+            &emsp;&emsp;"Name": String,<br>
+            &emsp;&emsp;"Bio": String,<br>
+            &emsp;&emsp;"Birth": String,<br>
+            &emsp;&emsp;"Death": ""<br>
+            &emsp;}</td>
       </tr>
       <tr>
         <td>Returns data about a genre by name</td>
-        <td>/movies/genre/:genreName</td>
+        <td>/movies/genre/:Name</td>
         <td>GET</td>
-        <td>:genreName</td>
+        <td>:Name</td>
         <td>None</td>
-        <td>JSON object of the genre</td>
+        <td>JSON object of the genre<br><br>Example: <br>
+            &emsp;{<br>
+            &emsp;&emsp;"Name": String,<br>
+            &emsp;&emsp;"Description": String<br>
+            &emsp;}
+        </td>
       </tr>
       <tr>
-        <td>Updates the username of the user</td>
+        <td>Updates the user info of the user</td>
         <td>/users/:id</td>
         <td>PUT</td>
         <td>:id</td>
-        <td>JSON object with new name as "name" key</td>
-        <td>JSON object the user</td>
+        <td>JSON object with new info to be updated<br><br> Example: <br> 
+          &emsp;{<br>  
+          &emsp;&emsp;"Username": String,<br>  
+          &emsp;&emsp;"Password": String,<br>  
+          &emsp;&emsp;"Email": String,<br>  
+          &emsp;&emsp;"Birthday": Date<br>  
+          &emsp;}
+        </td>
+        <td>JSON object of the updated user<br><br> Example: <br> 
+          &emsp;{<br>
+          &emsp;&emsp;"Username": String,<br>
+          &emsp;&emsp;"Password": String,<br>
+          &emsp;&emsp;"Email": String,<br>
+          &emsp;&emsp;"FavoriteMovies": Array,<br>
+          &emsp;&emsp;"_id": String,<br>
+          &emsp;&emsp;"__v": Number<br>
+          &emsp;}
+        </td>
       </tr>
       <tr>
         <td>Deletes a user by id</td>
-        <td>/users/:id</td>
+        <td>/users/:Username</td>
         <td>DELETE</td>
-        <td>:id</td>
+        <td>:Username</td>
         <td>None</td>
         <td>Text saying the user has been deleted</td>
       </tr>
       <tr>
         <td>Deletes a movie from the user's favorite movie list by name</td>
-        <td>/users/:id/:movieTitle</td>
+        <td>/users/:Username/movies/:MovieID</td>
         <td>DELETE</td>
-        <td>:id, :movieTitle</td>
+        <td>:Username, :MovieID</td>
         <td>None</td>
-        <td>Text saying the move has been removed</td>
+        <td>JSON object of user with movie removed from list<br>(See Above for example)</td>
       </tr>
     </table>
   </body>
