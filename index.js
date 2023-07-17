@@ -13,18 +13,7 @@ const { check, validationResult } = require('express-validator');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-let allowedOrigins = ['http://localhost:8080', 'http://testsite.com'];
-
-app.use(cors({
-  origin: (origin, callback) => {
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){ // If a specific origin isn’t found on the list of allowed origins
-      let message = 'The CORS policy for this application doesn’t allow access from origin ' + origin;
-      return callback(new Error(message ), false);
-    }
-    return callback(null, true);
-  }
-}));
+app.use(cors())
 
 require('./passport.js');
 let auth = require('./auth.js')(app);
@@ -47,11 +36,11 @@ app.use(express.static('public'));
   Birthday: Date
 }*/
 app.post('/users', [
-  check('Username', 'Username is required').isLength({min: 5}),
+  check('Username', 'Username must be at least 5 characters in length').isLength({ min: 5 }),
   check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
   check('Password', 'Password is required').not().isEmpty(),
   check('Email', 'Email does not appear to be valid').isEmail()
-  ], (req, res) => {
+], (req, res) => {
   // check the validation object for errors
   let errors = validationResult(req);
 
@@ -71,11 +60,11 @@ app.post('/users', [
             Email: req.body.Email,
             Birthday: req.body.Birthday
           })
-          .then((user) =>{res.status(201).json(user) })
-        .catch((error) => {
-          console.error(error);
-          res.status(500).send('Error: ' + error);
-        })
+          .then((user) => { res.status(201).json(user) })
+          .catch((error) => {
+            console.error(error);
+            res.status(500).send('Error: ' + error);
+          })
       }
     })
     .catch((error) => {
@@ -98,7 +87,7 @@ app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) 
 //
 // Get all movies an actor has been in, by actor name
 app.get('/movies/actors/:Name', passport.authenticate('jwt', { session: false }), (req, res) => {
-  Movies.find({ Actors: req.params.Name})
+  Movies.find({ Actors: req.params.Name })
     .then((movies) => {
       res.status(200).json(movies);
     })
@@ -192,18 +181,19 @@ app.get('/users/:Username', passport.authenticate('jwt', { session: false }), (r
   Birthday: Date
 }*/
 app.put('/users/:Username', [
-  check('Username', 'Username is required').isLength({min: 5}),
+  check('Username', 'Username must be at least 5 characters in length').isLength({ min: 5 }),
   check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
   check('Password', 'Password is required').not().isEmpty(),
   check('Email', 'Email does not appear to be valid').isEmail()
-  ], passport.authenticate('jwt', { session: false }), (req, res) => {
+], passport.authenticate('jwt', { session: false }), (req, res) => {
   // check the validation object for errors
   let errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     return res.status(422).json({ errors: errors.array() });
   }
-  Users.findOneAndUpdate({ Username: req.params.Username }, { $set:
+  Users.findOneAndUpdate({ Username: req.params.Username }, {
+    $set:
     {
       Username: req.body.Username,
       Password: req.body.Password,
@@ -211,44 +201,44 @@ app.put('/users/:Username', [
       Birthday: req.body.Birthday
     }
   },
-  { new: true }) // This line makes sure that the updated document is returned
-  .then((updatedUser) => {
-    res.status(200).json(updatedUser);
-  })
-  .catch((err) => {
-    console.error(err);
-    res.status(500).send('Error: '+ err);
-  });
+    { new: true }) // This line makes sure that the updated document is returned
+    .then((updatedUser) => {
+      res.status(200).json(updatedUser);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
 });
 
 // Add a movie to a user's list of favorites
 app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), (req, res) => {
   Users.findOneAndUpdate({ Username: req.params.Username }, {
-     $push: { FavoriteMovies: req.params.MovieID }
-   },
-   { new: true }) // This line makes sure that the updated document is returned
-   .then((updatedUser) => {
-    res.status(200).json(updatedUser);
-  })
-  .catch((err) => {
-    console.error(err);
-    res.status(500).send('Error: '+ err);
-  });
+    $push: { FavoriteMovies: req.params.MovieID }
+  },
+    { new: true }) // This line makes sure that the updated document is returned
+    .then((updatedUser) => {
+      res.status(200).json(updatedUser);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
 });
 
 // Delete a movie from a user's list of favorites
 app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), (req, res) => {
   Users.findOneAndUpdate({ Username: req.params.Username }, {
-     $pull: { FavoriteMovies: req.params.MovieID }
-   },
-   { new: true }) // This line makes sure that the updated document is returned
-   .then((updatedUser) => {
-    res.status(200).json(updatedUser);
-  })
-  .catch((err) => {
-    console.error(err);
-    res.status(500).send('Error: '+ err);
-  });
+    $pull: { FavoriteMovies: req.params.MovieID }
+  },
+    { new: true }) // This line makes sure that the updated document is returned
+    .then((updatedUser) => {
+      res.status(200).json(updatedUser);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
 });
 
 // Delete a user by username
@@ -272,11 +262,11 @@ app.get('/', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-  });
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
 
 const port = process.env.PORT || 8080;
-app.listen(port, '0.0.0.0',() => {
+app.listen(port, '0.0.0.0', () => {
   console.log('Your app is listening on port ' + port);
 });
