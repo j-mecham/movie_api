@@ -26,15 +26,20 @@ mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnified
 app.use(morgan('common'));
 app.use(express.static('public'));
 
-//Add a user
-/* We’ll expect JSON in this format
-{
-  ID: Integer,
-  Username: String,
-  Password: String,
-  Email: String,
-  Birthday: Date
-}*/
+/** 
+ * @function
+ * Creates a new User with the Post Method
+ * Query Parameters: None
+ * Request body: JSON object of new user
+ * Example:
+ * {
+ *  "Username": String,
+ *  "Password": String,
+ *  "Email": String,
+ *  "Birthday": Date
+ * }
+ * Response Data: Object of new User with ID
+ */ 
 app.post('/users', [
   check('Username', 'Username must be at least 5 characters in length').isLength({ min: 5 }),
   check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
@@ -73,7 +78,13 @@ app.post('/users', [
     });
 });
 
-// Get all movies
+/** 
+ * @function
+ * Gets all movies with the Get method
+ * Query Parameters: None
+ * Request body: None
+ * Response Data: Array of JSON Movie Objects
+ */ 
 app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) => {
   Movies.find()
     .then((movies) => {
@@ -84,8 +95,14 @@ app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) 
       res.status(500).send('Error: ' + err);
     });
 });
-//
-// Get all movies an actor has been in, by actor name
+
+/** 
+ * @function
+ * Gets all movies with a certain actor by name via the Get Method
+ * Query Parameters: :Name
+ * Request body: None
+ * Response Data: Array of JSON Movie Objects with specified actor
+ */ 
 app.get('/movies/actors/:Name', passport.authenticate('jwt', { session: false }), (req, res) => {
   Movies.find({ Actors: req.params.Name })
     .then((movies) => {
@@ -97,7 +114,13 @@ app.get('/movies/actors/:Name', passport.authenticate('jwt', { session: false })
     });
 });
 
-// Get a movie by title
+/** 
+ * @function
+ * Gets a movie by Title with the Get Method
+ * Query Parameters: :Title
+ * Request body: None
+ * Response Data: JSON Movie Object
+ */ 
 app.get('/movies/:Title', passport.authenticate('jwt', { session: false }), (req, res) => {
   Movies.findOne({ Title: req.params.Title })
     .then((movie) => {
@@ -113,7 +136,13 @@ app.get('/movies/:Title', passport.authenticate('jwt', { session: false }), (req
     });
 });
 
-// Get a genre by name
+/** 
+ * @function
+ * Gets a genre by name with the Get Method
+ * Query Parameters: :Name
+ * Request body: None
+ * Response Data: JSON object of specified Genre
+ */ 
 app.get('/movies/genre/:Name', passport.authenticate('jwt', { session: false }), (req, res) => {
   Movies.findOne({ 'Genre.Name': req.params.Name })
     .then((Name) => {
@@ -129,7 +158,13 @@ app.get('/movies/genre/:Name', passport.authenticate('jwt', { session: false }),
     });
 });
 
-// Get a director by name
+/** 
+ * @function
+ * Gets a director by Name
+ * Query Parameters: :Name
+ * Request body: None
+ * Response Data: JSON object of specified Director
+ */ 
 app.get('/movies/director/:Name', passport.authenticate('jwt', { session: false }), (req, res) => {
   Movies.findOne({ 'Director.Name': req.params.Name })
     .then((Name) => {
@@ -157,7 +192,13 @@ app.get('/users', passport.authenticate('jwt', { session: false }), (req, res) =
     });
 });
 
-// Get a user by username
+/** 
+ * @function
+ * Gets a user by Username
+ * Query Parameters: :Username
+ * Request body: None
+ * Response Data: A JSON Object of the Specified User
+ */ 
 app.get('/users/:Username', passport.authenticate('jwt', { session: false }), (req, res) => {
   Users.findOne({ Username: req.params.Username })
     .then((user) => {
@@ -169,17 +210,20 @@ app.get('/users/:Username', passport.authenticate('jwt', { session: false }), (r
     });
 });
 
-// Update a user's info, by username
-/* We’ll expect JSON in this format
-{
-  Username: String,
-  (required)
-  Password: String,
-  (required)
-  Email: String,
-  (required)
-  Birthday: Date
-}*/
+/** 
+ * @function
+ * Updates a user's info by username with the Put Method
+ * Query Parameters: :id
+ * Request body: JSON object with new info to be updated
+ * Example: 
+ * {
+ *  "Username": String,
+ *  "Password": String,
+ *  "Email": String,
+ *  "Birthday": Date
+ * }
+ * Response Data: JSON Object of the updated User
+ */ 
 app.put('/users/:Username', [
   check('Username', 'Username must be at least 5 characters in length').isLength({ min: 5 }),
   check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
@@ -211,7 +255,13 @@ app.put('/users/:Username', [
     });
 });
 
-// Add a movie to a user's list of favorites
+/** 
+ * @function
+ * Adds a movie to the Users' Favorites list via Post Method
+ * Query Parameters: :Username, :MovieID
+ * Request body: None
+ * Response Data: JSON Object of the user with movieID in FavoriteMovies Array
+ */ 
 app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), (req, res) => {
   Users.findOneAndUpdate({ Username: req.params.Username }, {
     $push: { FavoriteMovies: req.params.MovieID }
@@ -226,7 +276,13 @@ app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { sess
     });
 });
 
-// Delete a movie from a user's list of favorites
+/** 
+ * @function
+ * Deletes a movie from the Users' Favorites list via Delete Method
+ * Query Parameters: :Username, :MovieID
+ * Request body: None
+ * Response Data: JSON Object of the user with movieID removed from FavoriteMovies Array
+ */ 
 app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), (req, res) => {
   Users.findOneAndUpdate({ Username: req.params.Username }, {
     $pull: { FavoriteMovies: req.params.MovieID }
@@ -241,7 +297,13 @@ app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { se
     });
 });
 
-// Delete a user by username
+/** 
+ * @function
+ * Deletes a user by ID with the Delete Method
+ * Query Parameters: :Username
+ * Request body: None
+ * Response Data: Text saying the user has been deleted
+ */ 
 app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), (req, res) => {
   Users.findOneAndRemove({ Username: req.params.Username })
     .then((user) => {
