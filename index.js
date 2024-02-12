@@ -8,19 +8,87 @@ const express = require('express'),
   mongoose = require('mongoose'),
   Models = require('./models.js');
 const { check, validationResult } = require('express-validator');
+const fs = require("fs");
+const AWS = require("aws-sdk");
 
+AWS.config.update({region: "us-east-1"});
+
+const s3 = new AWS.S3({ apiVersion: "2006-03-01" })
+
+app.get("/allObjects", async (req, res) => {
+  const bucketName = "my-cool-bucket";
+  const params = { Bucket: bucketName };
+
+  try {
+    const data = await s3.listObjects(params).promise();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/oneObject/:key", async (req, res) => {
+  const bucketName = "my-cool-bucket";
+  const { key } = req.params;
+
+  const params = { Bucket: bucketName, Key: key };
+
+  try {
+    const data = await s3.getObject(params).promise();
+    res.send(data.Body);
+  } catch (error) {
+    res.status(404).json({ error: "Object not found" });
+  }
+});
+
+app.post("/newObject", async (req, res) => {
+  const bucketName = "my-cool-object";
+  const fileName = "helloWorld.txt";
+  const fileContent = "Hello world!";
+
+  const params = { Bucket: bucketName, Key: fileName, Body: fileContent };
+
+  try {
+    await s3.upload(params).promise();
+    res.json({ message: "File uploaded successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use(cors())
+const allowedOrigins = [
+  
+  "http://localhost:3000",
+  "http://",
+  "https://myflix-46b5ae.netlify.app",
+  "https://nat-crit20.github.io",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        // If a specific origin isn’t found on the list of allowed origins
+        let message =
+          "The CORS policy for this application doesn’t allow access from origin " +
+          origin;
+        return callback(new Error(message), false);
+      }
+      return callback(null, true);
+    },
+  })
+);
 
 require('./passport.js');
 let auth = require('./auth.js')(app);
 
 const Movies = Models.Movie;
 const Users = Models.User;
-//mongoose.connect('mongodb://127.0.0.1:27017/filmFanDB', { useNewUrlParser: true, useUnifiedTopology: true });
+//mongoose.connect('mongodb+srv://filmFanDBadmin:$cHSWdc2014@joshm.av56foe.mongodb.net/filmFanDB', { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.use(morgan('common'));
