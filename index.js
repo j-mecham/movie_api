@@ -10,10 +10,50 @@ const express = require('express'),
 const { check, validationResult } = require('express-validator');
 const fs = require("fs");
 const AWS = require("aws-sdk");
+require('dotenv').config()
 
 AWS.config.update({region: "us-east-1"});
 
 const s3 = new AWS.S3({ apiVersion: "2006-03-01" })
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+const allowedOrigins = [
+  
+  "http://localhost:3000",
+  "http://",
+  "https://myflix-46b5ae.netlify.app",
+  "https://nat-crit20.github.io",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        // If a specific origin isn’t found on the list of allowed origins
+        let message =
+          "The CORS policy for this application doesn’t allow access from origin " +
+          origin;
+        return callback(new Error(message), false);
+      }
+      return callback(null, true);
+    },
+  })
+);
+
+require('./passport.js');
+let auth = require('./auth.js')(app);
+
+const Movies = Models.Movie;
+const Users = Models.User;
+console.log(process.env.CONNECTION_URI)
+mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+// mongoose.connect('mongodb://localhost/local');
+
+app.use(morgan('common'));
+app.use(express.static('public'));
 
 app.get("/allObjects", async (req, res) => {
   const bucketName = "my-cool-bucket";
@@ -55,44 +95,6 @@ app.post("/newObject", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
-const allowedOrigins = [
-  
-  "http://localhost:3000",
-  "http://",
-  "https://myflix-46b5ae.netlify.app",
-  "https://nat-crit20.github.io",
-];
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        // If a specific origin isn’t found on the list of allowed origins
-        let message =
-          "The CORS policy for this application doesn’t allow access from origin " +
-          origin;
-        return callback(new Error(message), false);
-      }
-      return callback(null, true);
-    },
-  })
-);
-
-require('./passport.js');
-let auth = require('./auth.js')(app);
-
-const Movies = Models.Movie;
-const Users = Models.User;
-//mongoose.connect('mongodb+srv://filmFanDBadmin:$cHSWdc2014@joshm.av56foe.mongodb.net/filmFanDB', { useNewUrlParser: true, useUnifiedTopology: true });
-mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-app.use(morgan('common'));
-app.use(express.static('public'));
 
 /** 
  * @function
@@ -396,7 +398,7 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!');
 });
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8080 || 4566;
 app.listen(port, '0.0.0.0', () => {
   console.log('Your app is listening on port ' + port);
 });
