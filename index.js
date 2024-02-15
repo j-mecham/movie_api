@@ -9,22 +9,32 @@ const express = require('express'),
   Models = require('./models.js');
 const { check, validationResult } = require('express-validator');
 const fs = require("fs");
+// const fileUpload = require('express-fileupload')
 const AWS = require("aws-sdk");
-const { S3Client, ListObjectsV2Command, PutObjectCommand } = require('@aws-sdk/client-s3')
+const multer = require("multer")
+const { S3Client, ListObjectsV2Command, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3')
 require('dotenv').config()
 
 AWS.config.update({region: "us-east-1"});
 
 const s3 = new AWS.S3({ apiVersion: "2006-03-01" })
 
-const s3Client = new S3Client({
-  region: 'us-east-1',
-  endpoint: 'http://localhost:4566',
-  forcePathStyle: true
-})
+let s3Client;
+if (process.env.ENVIRONMENT==="local")  {
+  s3Client = new S3Client({
+    region: 'us-east-1',
+    endpoint: 'http://localhost:4566',
+    forcePathStyle: true
+});
+} else {
+  s3Client = new S3Client({
+    region: 'us-east-1'
+});
+}
+
 
 const listObjectsParams = {
-  Bucket: 'my-cool-bucket'
+  Bucket: process.env.MY_BUCKET
 }
 
 listObjectsCmd = new ListObjectsV2Command(listObjectsParams)
@@ -33,6 +43,7 @@ s3Client.send(listObjectsCmd)
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+// app.use(fileUpload());
 
 const allowedOrigins = [
   
@@ -70,54 +81,72 @@ mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnified
 app.use(morgan('common'));
 app.use(express.static('public'));
 
-app.get("/allObjects", async (req, res) => {
-  const bucketName = "my-cool-bucket";
-  const params = { Bucket: bucketName };
+app.get('/allObjects', (_req, res) => {
+  s3Client.send(new ListObjectsV2Command(listObjectsParams))
+      .then((listObjectsResponse) => {
+        console.log(listObjectsResponse)
+          res.send(listObjectsResponse)
+  }).catch((error) => {
+    console.error(error);
+  })
+});
+
+app.get("/oneObject", async (req, res) => {
+  const command = new GetObjectCommand({
+    Bucket: process.env.MY_BUCKET,
+    Key: "helloWorld.txt",
+  });
 
   try {
-    const data = await s3.listObjects(params).promise();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const response = await s3Client.send(command);
+    const str = await response.Body.transformToString();
+    console.log(str);
+    res.status(200).json({ message: 'File contents: '+ str });
+  } catch (err) {
+    console.error(err);
   }
 });
 
-// app.get('/my-cool-bucket', (_req, res) => {
-//   listObjectsParams = {
-//       Bucket: IMAGES_BUCKET
+// app.get("/oneObject/:key", async (req, res) => {
+//   const bucketName = "my-cool-bucket";
+//   const { key } = req.params;
+
+//   const params = { Bucket: bucketName, Key: key };
+
+//   try {
+//     const data = await s3.getObject(params).promise();
+//     res.send(data.Body);
+//   } catch (error) {
+//     res.status(404).json({ error: "Object not found" });
 //   }
-//   s3Client.send(new ListObjectsV2Command(listObjectsParams))
-//       .then((listObjectsResponse) => {
-//           res.send(listObjectsResponse)
-//   })
-// })
+// });
 
-app.get("/oneObject/:key", async (req, res) => {
-  const bucketName = "my-cool-bucket";
-  const { key } = req.params;
+// Endpoint to upload an image to a bucket
+const storage = multer.memoryStorage(); // Store the file in memory
+const upload = multer({ storage });
 
-  const params = { Bucket: bucketName, Key: key };
-
+// Endpoint to handle image upload
+app.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    const data = await s3.getObject(params).promise();
-    res.send(data.Body);
+    const { originalname, buffer } = req.file;
+
+    // Specify the S3 bucket and key (object key) for the image
+    const objectKey = originalname; // Use the original file name
+
+    // Prepare the parameters for the S3 PUT operation
+    const params = {
+      Bucket: process.env.MY_BUCKET,
+      Key: objectKey,
+      Body: buffer,
+    };
+    console.log(originalname, objectKey)
+    // Upload the image to the S3 bucket
+    await s3Client.send(new PutObjectCommand(params));
+
+    res.status(200).json({ message: "File uploaded successfully" });
   } catch (error) {
-    res.status(404).json({ error: "Object not found" });
-  }
-});
-
-app.post("/newObject", async (req, res) => {
-  const bucketName = "my-cool-object";
-  const fileName = "helloWorld.txt";
-  const fileContent = "Hello world!";
-
-  const params = { Bucket: bucketName, Key: fileName, Body: fileContent };
-
-  try {
-    await s3.upload(params).promise();
-    res.json({ message: "File uploaded successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error uploading file:", error);
+    res.status(500).json({ error: "Image upload failed" });
   }
 });
 
