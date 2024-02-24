@@ -10,26 +10,11 @@ const express = require('express'),
 const { check, validationResult } = require('express-validator');
 const fs = require("fs");
 const AWS = require("aws-sdk");
-const { S3Client, ListObjectsV2Command, PutObjectCommand } = require('@aws-sdk/client-s3')
 require('dotenv').config()
 
 AWS.config.update({region: "us-east-1"});
 
 const s3 = new AWS.S3({ apiVersion: "2006-03-01" })
-
-const s3Client = new S3Client({
-  region: 'us-east-1',
-  endpoint: 'http://localhost:4566',
-  forcePathStyle: true
-})
-
-const listObjectsParams = {
-  Bucket: 'my-cool-bucket'
-}
-
-listObjectsCmd = new ListObjectsV2Command(listObjectsParams)
-
-s3Client.send(listObjectsCmd)
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -81,16 +66,6 @@ app.get("/allObjects", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-// app.get('/my-cool-bucket', (_req, res) => {
-//   listObjectsParams = {
-//       Bucket: IMAGES_BUCKET
-//   }
-//   s3Client.send(new ListObjectsV2Command(listObjectsParams))
-//       .then((listObjectsResponse) => {
-//           res.send(listObjectsResponse)
-//   })
-// })
 
 app.get("/oneObject/:key", async (req, res) => {
   const bucketName = "my-cool-bucket";
